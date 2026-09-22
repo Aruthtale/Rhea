@@ -8,7 +8,7 @@ export interface ChatMessage {
 }
 
 const INITIAL_MESSAGES: ChatMessage[] = [
-  { role: 'rhea', text: 'Hai Zen, hari ini udah siap apa nggak? Jangan lupa istirahat yaa kalau udah lelah' },
+  { role: 'rhea', text: 'Hai Zen, hari ini udah siap apa nggak? Jangan lupa istirahat yaa kalau udah cape' },
 ];
 
 export function useRheaChat() {

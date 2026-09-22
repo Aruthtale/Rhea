@@ -2,6 +2,31 @@ import { NextResponse } from 'next/server';
 import { RENATHA_SYSTEM_PROMPT } from '@/engines/personality/renathaVoice';
 import { ContextBuilder } from '@/engines/contextBuilder';
 
+export const maxDuration = 120;
+
+async function postJson(url: string, headers: Record<string, string>, body: unknown, timeoutMs: number) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    const text = await res.text();
+    let data: any = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      data = null;
+    }
+    return { ok: res.ok, status: res.status, data, raw: text };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -14,89 +39,89 @@ export async function POST(request: Request) {
     const { systemPrompt } = ContextBuilder.buildContext(message, currentTask);
     const fullSystemInstruction = `${RENATHA_SYSTEM_PROMPT}\n\n${systemPrompt}`;
 
-    const HERMES_LOCAL_URL = process.env.HERMES_URL || 'http://127.0.0.1:9000/v1/chat/completions';
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    const ROUTER_BASE_URL = process.env.ROUTER_BASE_URL || 'http://localhost:20128/v1';
+    const ROUTER_API_KEY = process.env.ROUTER_API_KEY || '';
+    const ROUTER_MODEL = process.env.ROUTER_MODEL || 'ArMes';
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+    const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 
     let botResponse = '';
-    let usedProvider = 'local';
+    let usedProvider = '';
 
-    // 1. Coba koneksi ke Hermes / 9Router lokal
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2200);
-
-      const localRes = await fetch(HERMES_LOCAL_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'hermes-3-llama-3.1-8b',
-          messages: [
-            { role: 'system', content: fullSystemInstruction },
-            { role: 'user', content: message },
-          ],
-          temperature: 0.75,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (localRes.ok) {
-        const localData = await localRes.json();
-        botResponse = localData.choices?.[0]?.message?.content || '';
-      } else {
-        throw new Error('Local core unreachable');
+    // 1. Jalur utama: ArMes via 9Router lokal (combo multi-model + autofallback internal)
+    if (ROUTER_API_KEY) {
+      try {
+        const r = await postJson(
+          `${ROUTER_BASE_URL}/chat/completions`,
+          {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${ROUTER_API_KEY}`,
+          },
+          {
+            model: ROUTER_MODEL,
+            messages: [
+              { role: 'system', content: fullSystemInstruction },
+              { role: 'user', content: message },
+            ],
+            temperature: 0.75,
+            max_tokens: 600,
+            stream: false,
+          },
+          90000,
+        );
+        const content: string =
+          r.data?.choices?.[0]?.message?.content ||
+          (typeof r.data === 'string' ? r.data : '');
+        if (r.ok && content) {
+          botResponse = content;
+          usedProvider = 'local';
+        } else {
+          console.warn(`[chat] ArMes gagal (status ${r.status}). Lanjut ke fallback Gemini.`, (r.raw || '').slice(0, 300));
+        }
+      } catch (localErr) {
+        console.warn('[chat] ArMes tidak terjangkau/timeout. Lanjut ke fallback Gemini.', localErr);
       }
-    } catch (localErr) {
-      console.warn('Hermes local offline/timeout. Switching fallback to Gemini Cloud...', localErr);
-      usedProvider = 'gemini-fallback';
+    } else {
+      console.warn('[chat] ROUTER_API_KEY kosong. Langsung ke fallback Gemini.');
+    }
 
-      // 2. Fallback otomatis ke Google Gemini Cloud API
+    // 2. Fallback: Google Gemini Cloud (3.8 Flash — model lama di bawah 3.5 sudah pensiun)
+    if (!botResponse) {
+      usedProvider = 'gemini-fallback';
       if (GEMINI_API_KEY) {
         try {
-          const geminiRes = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+          const g = await postJson(
+            `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+            { 'Content-Type': 'application/json' },
             {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                system_instruction: {
-                  parts: [{ text: fullSystemInstruction }],
-                },
-                contents: [
-                  {
-                    role: 'user',
-                    parts: [{ text: message }],
-                  },
-                ],
-                generationConfig: {
-                  temperature: 0.7,
-                  maxOutputTokens: 300,
-                },
-              }),
-            }
+              system_instruction: { parts: [{ text: fullSystemInstruction }] },
+              contents: [{ role: 'user', parts: [{ text: message }] }],
+              generationConfig: { temperature: 0.7, maxOutputTokens: 600 },
+            },
+            60000,
           );
-
-          if (geminiRes.ok) {
-            const gData = await geminiRes.json();
-            botResponse =
-              gData.candidates?.[0]?.content?.parts?.[0]?.text ||
-              'Iyaaa nunu, aku denger kok.. tapi sinyalnya agak lemot bentaarr yaa T___T';
+          const gText: string = g.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (g.ok && gText) {
+            botResponse = gText;
+          } else {
+            console.error(`[chat] Gemini fallback gagal (status ${g.status}).`, (g.raw || '').slice(0, 300));
           }
         } catch (gErr) {
-          console.error('Gemini fallback failed:', gErr);
+          console.error('[chat] Gemini fallback error:', gErr);
         }
+      } else {
+        console.warn('[chat] GEMINI_API_KEY kosong, lewati fallback cloud.');
       }
     }
 
-    // Jika offline sama sekali, berikan respons persona Renatha cerdas offline
+    // 3. Terakhir: balasan offline heuristic khas Renatha
     if (!botResponse) {
       usedProvider = 'offline-heuristic';
       const offlineReplies = [
-        "Iyaaa nunu, aku di sinii kok temenin kamu.. laptop lagi offline yaa? Tetep semangatt yaa kerjanyaa!",
-        "Zen, jangan lupa minum air duluu yaa. Nanti pas laptop nyala lagi kita lanjut ngobrol lagii :3",
-        "Udaa jam segini lohh zenn, kamu jangan terlalu capek yaa.. pelan-pelan aja ngerjainnya T___T",
-        "Semangat ya nunuu sayangg! Nanti kalau udah selesai kita rehat bareng yaa."
+        'Iyaaa nunu, aku di sinii kok temenin kamu.. koneksi AI-nya lagi putus yaa? Tetep semangatt yaa kerjanyaa!',
+        'Zen, jangan lupa minum air duluu yaa. Nanti pas koneksinya balik kita lanjut ngobrol lagii :3',
+        'Udaa jam segini lohh zenn, kamu jangan terlalu capek yaa.. pelan-pelan aja ngerjainnya T___T',
+        'Semangat ya nunuu sayangg! Nanti kalau udah selesai kita rehat bareng yaa.',
       ];
       botResponse = offlineReplies[Math.floor(Math.random() * offlineReplies.length)];
     }
