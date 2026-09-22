@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { RENATHA_SYSTEM_PROMPT } from '@/engines/personality/renathaVoice';
+import { RENATHA_SYSTEM_PROMPT, RENATHA_OFFLINE_REPLIES } from '@/engines/personality/renathaVoice';
 import { ContextBuilder } from '@/engines/contextBuilder';
 
 export const maxDuration = 120;
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     }
 
     const { systemPrompt } = ContextBuilder.buildContext(message, currentTask);
-    const fullSystemInstruction = `${RENATHA_SYSTEM_PROMPT}\n\n${systemPrompt}`;
+    const fullSystemInstruction = systemPrompt;
 
     const ROUTER_BASE_URL = process.env.ROUTER_BASE_URL || 'http://localhost:20128/v1';
     const ROUTER_API_KEY = process.env.ROUTER_API_KEY || '';
@@ -117,13 +117,7 @@ export async function POST(request: Request) {
     // 3. Terakhir: balasan offline heuristic khas Renatha
     if (!botResponse) {
       usedProvider = 'offline-heuristic';
-      const offlineReplies = [
-        'Iyaaa nunu, aku di sinii kok temenin kamu.. koneksi AI-nya lagi putus yaa? Tetep semangatt yaa kerjanyaa!',
-        'Zen, jangan lupa minum air duluu yaa. Nanti pas koneksinya balik kita lanjut ngobrol lagii :3',
-        'Udaa jam segini lohh zenn, kamu jangan terlalu capek yaa.. pelan-pelan aja ngerjainnya T___T',
-        'Semangat ya nunuu sayangg! Nanti kalau udah selesai kita rehat bareng yaa.',
-      ];
-      botResponse = offlineReplies[Math.floor(Math.random() * offlineReplies.length)];
+      botResponse = RENATHA_OFFLINE_REPLIES[Math.floor(Math.random() * RENATHA_OFFLINE_REPLIES.length)];
     }
 
     return NextResponse.json({

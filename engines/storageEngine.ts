@@ -65,15 +65,15 @@ export class StorageEngine {
   }
 
   static getFocusMinutesToday(): number {
-    if (typeof window === 'undefined') return 45;
+    if (typeof window === 'undefined') return 0;
     try {
       const today = new Date().toISOString().slice(0, 10);
       const data = localStorage.getItem(STORAGE_KEYS.FOCUS_STATS);
-      if (!data) return 45; // dummy default starter
+      if (!data) return 0;
       const parsed = JSON.parse(data);
       return parsed[today] || 0;
     } catch {
-      return 45;
+      return 0;
     }
   }
 
