@@ -1,0 +1,166 @@
+{
+  "weekly": {
+    "saturday": [
+      {
+        "id": "saturday-wake-up",
+        "start": "05:00",
+        "end": "05:30",
+        "title": "Bangun + Subuh + Persiapan",
+        "type": "morning",
+        "location": "Home",
+        "description": "Bangun, minum air, cuci muka, rapikan tempat tidur, Sholat Subuh, doa, dan persiapan workout."
+      },
+      {
+        "id": "saturday-running",
+        "start": "05:30",
+        "end": "06:10",
+        "title": "Easy Run",
+        "type": "exercise",
+        "location": "Outdoor",
+        "details": {
+          "warmup": "Jalan 5 menit",
+          "jogging": "20–30 menit",
+          "cooldown": "5 menit",
+          "intensity": "Easy / santai",
+          "goal": "Meningkatkan stamina dan menjaga aktivitas fisik tanpa mengejar pace atau membakar kalori secara berlebihan."
+        }
+      },
+      {
+        "id": "saturday-running-recovery",
+        "start": "06:10",
+        "end": "06:20",
+        "title": "Recovery Setelah Lari",
+        "type": "recovery",
+        "location": "Outdoor",
+        "description": "Atur napas, jalan ringan, dan minum air sebelum melanjutkan latihan."
+      },
+      {
+        "id": "saturday-calisthenics",
+        "start": "06:20",
+        "end": "06:50",
+        "title": "Calisthenics",
+        "type": "exercise",
+        "location": "Home",
+        "details": {
+          "intensity": "Light–Moderate",
+          "exercises": [
+            {
+              "exercise": "Push-up",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Squat",
+              "sets": 3,
+              "reps": 15
+            },
+            {
+              "exercise": "Reverse lunge",
+              "sets": 2,
+              "reps": "10 / kaki"
+            },
+            {
+              "exercise": "Pike push-up",
+              "sets": 2,
+              "reps": 8
+            },
+            {
+              "exercise": "Dead bug",
+              "sets": 3,
+              "reps": "10 / sisi"
+            },
+            {
+              "exercise": "Plank",
+              "sets": 2,
+              "duration": "45 detik"
+            }
+          ],
+          "rules": {
+            "failure": false,
+            "description": "Tidak perlu sampai failure. Latihan dilakukan dengan teknik yang terkontrol."
+          }
+        }
+      },
+      {
+        "id": "saturday-breakfast",
+        "start": "06:50",
+        "end": "07:30",
+        "title": "Cooldown + Mandi",
+        "type": "recovery",
+        "location": "Home",
+        "description": "Beri tubuh waktu untuk menurunkan intensitas, kemudian mandi dan bersiap untuk sarapan."
+      },
+      {
+        "id": "saturday-big-breakfast",
+        "start": "07:30",
+        "end": "08:00",
+        "title": "Sarapan Besar",
+        "type": "meal",
+        "location": "Home",
+        "description": "Prioritaskan makanan yang cukup untuk mengganti energi setelah latihan. Jangan melewatkan sarapan setelah workout."
+      },
+      {
+        "id": "saturday-morning-free",
+        "start": "08:00",
+        "end": "12:00",
+        "title": "Free Time / Project",
+        "type": "leisure",
+        "location": "Home",
+        "description": "Tidak ada PKL. Waktu bebas untuk project, gaming, belajar, atau aktivitas pribadi."
+      },
+      {
+        "id": "saturday-lunch",
+        "start": "12:00",
+        "end": "13:00",
+        "title": "Makan Siang + Istirahat",
+        "type": "meal",
+        "location": "Home",
+        "description": "Makan siang dan recovery."
+      },
+      {
+        "id": "saturday-afternoon",
+        "start": "13:00",
+        "end": "18:00",
+        "title": "Free Time / Project",
+        "type": "leisure",
+        "location": "Home",
+        "description": "Waktu bebas tanpa kewajiban workout. Bisa digunakan untuk project, gaming, belajar, atau aktivitas pribadi."
+      },
+      {
+        "id": "saturday-dinner",
+        "start": "18:00",
+        "end": "19:00",
+        "title": "Makan + Recovery",
+        "type": "recovery",
+        "location": "Home",
+        "description": "Makan malam dan recovery setelah aktivitas hari ini."
+      },
+      {
+        "id": "saturday-evening",
+        "start": "19:00",
+        "end": "20:30",
+        "title": "Free Time / Project",
+        "type": "leisure",
+        "location": "Home"
+      },
+      {
+        "id": "saturday-wind-down",
+        "start": "20:30",
+        "end": "21:00",
+        "title": "Wind-down",
+        "type": "preparation",
+        "location": "Home",
+        "description": "Kurangi aktivitas berat dan bersiap untuk tidur."
+      },
+      {
+        "id": "saturday-sleep",
+        "start": "21:00",
+        "end": "22:00",
+        "title": "Tidur",
+        "type": "sleep",
+        "location": "Home",
+        "description": "Target tidur 21:00–21:30; 22:00 batas maksimal."
+      }
+    ]
+  }
+}

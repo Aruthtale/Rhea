@@ -1,0 +1,174 @@
+{
+  "weekly": {
+    "friday": [
+      {
+        "id": "friday-wake-up",
+        "start": "05:00",
+        "end": "05:25",
+        "title": "Bangun + Subuh + Persiapan",
+        "type": "morning",
+        "location": "Home",
+        "description": "Bangun, minum air, cuci muka, rapikan tempat tidur, Sholat Subuh, doa, lalu persiapan workout."
+      },
+      {
+        "id": "friday-full-body",
+        "start": "05:25",
+        "end": "06:10",
+        "title": "Full Body",
+        "type": "exercise",
+        "location": "Home",
+        "details": {
+          "intensity": "Moderate",
+          "exercises": [
+            {
+              "exercise": "Push-up",
+              "sets": 3,
+              "reps": "8–12"
+            },
+            {
+              "exercise": "Squat",
+              "sets": 3,
+              "reps": "12–15"
+            },
+            {
+              "exercise": "Reverse lunge",
+              "sets": 2,
+              "reps": "8 / kaki"
+            },
+            {
+              "exercise": "Pike push-up",
+              "sets": 2,
+              "reps": "6–8"
+            },
+            {
+              "exercise": "Dead bug",
+              "sets": 2,
+              "reps": "8 / sisi"
+            },
+            {
+              "exercise": "Plank",
+              "sets": 2,
+              "duration": "30–45 detik"
+            }
+          ],
+          "rules": {
+            "failure": false,
+            "description": "Jangan sampai failure. Sisakan beberapa repetisi sebelum benar-benar mentok."
+          }
+        }
+      },
+      {
+        "id": "friday-cooldown",
+        "start": "06:10",
+        "end": "06:30",
+        "title": "Cooldown + Recovery",
+        "type": "recovery",
+        "location": "Home",
+        "description": "Jalan ringan, atur napas, dan minum air."
+      },
+      {
+        "id": "friday-shower",
+        "start": "06:30",
+        "end": "07:00",
+        "title": "Mandi + Persiapan",
+        "type": "personal",
+        "location": "Home"
+      },
+      {
+        "id": "friday-breakfast",
+        "start": "07:00",
+        "end": "07:25",
+        "title": "Sarapan",
+        "type": "meal",
+        "location": "Home",
+        "description": "Sarapan cukup sebelum berangkat PKL."
+      },
+      {
+        "id": "friday-departure",
+        "start": "07:25",
+        "end": "08:00",
+        "title": "Persiapan + Berangkat PKL",
+        "type": "travel",
+        "description": "Siapkan air minum dan kebutuhan PKL."
+      },
+      {
+        "id": "friday-pkl-morning",
+        "start": "08:00",
+        "end": "12:00",
+        "title": "PKL",
+        "type": "work",
+        "location": "PKL",
+        "description": "Fokus kerja dan minum secara berkala."
+      },
+      {
+        "id": "friday-lunch-break",
+        "start": "12:00",
+        "end": "13:00",
+        "title": "Istirahat",
+        "type": "break",
+        "location": "PKL",
+        "description": "Makan siang + ibadah + recovery."
+      },
+      {
+        "id": "friday-pkl-afternoon",
+        "start": "13:00",
+        "end": "17:00",
+        "title": "PKL",
+        "type": "work",
+        "location": "PKL",
+        "description": "Lanjut PKL. Gunakan snack bila lapar."
+      },
+      {
+        "id": "friday-home-recovery",
+        "start": "17:00",
+        "end": "18:00",
+        "title": "Pulang + Recovery",
+        "type": "recovery",
+        "description": "Perjalanan pulang dan recovery. Tidak ada workout tambahan."
+      },
+      {
+        "id": "friday-evening",
+        "start": "18:00",
+        "end": "19:00",
+        "title": "Mandi + Ibadah + Makan",
+        "type": "recovery",
+        "location": "Home"
+      },
+      {
+        "id": "friday-project",
+        "start": "19:00",
+        "end": "20:00",
+        "title": "Belajar / Project",
+        "type": "study",
+        "location": "Home",
+        "description": "Satu fokus utama. Jangan memaksakan diri jika tubuh sudah lelah."
+      },
+      {
+        "id": "friday-free-time",
+        "start": "20:00",
+        "end": "20:30",
+        "title": "Free Time",
+        "type": "leisure",
+        "location": "Home"
+      },
+      {
+        "id": "friday-preparation",
+        "start": "20:30",
+        "end": "21:00",
+        "title": "Persiapan Weekend + Wind-down",
+        "type": "preparation",
+        "location": "Home",
+        "description": "Rapikan kebutuhan dan bersiap untuk tidur."
+      },
+      {
+        "id": "friday-sleep",
+        "start": "21:00",
+        "end": "22:00",
+        "title": "Wind-down → Tidur",
+        "type": "sleep",
+        "location": "Home",
+        "description": "Target tidur 21:00–21:30; 22:00 batas maksimal."
+      }
+    ]
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "weekly": {
+    "sunday": [
+      {
+        "id": "sunday-wake-up",
+        "start": "05:00",
+        "end": "05:30",
+        "title": "Bangun + Subuh + Persiapan",
+        "type": "morning",
+        "location": "Home",
+        "description": "Bangun, minum air, cuci muka, rapikan tempat tidur, Sholat Subuh, doa, dan memulai hari dengan santai."
+      },
+      {
+        "id": "sunday-rest",
+        "start": "05:30",
+        "end": "07:00",
+        "title": "Full Rest",
+        "type": "rest",
+        "location": "Home",
+        "description": "Tidak ada workout. Gunakan waktu untuk recovery dan aktivitas ringan sesuai kebutuhan."
+      },
+      {
+        "id": "sunday-breakfast",
+        "start": "07:00",
+        "end": "08:00",
+        "title": "Sarapan",
+        "type": "meal",
+        "location": "Home",
+        "description": "Sarapan dan memenuhi kebutuhan energi untuk recovery."
+      },
+      {
+        "id": "sunday-free-time-morning",
+        "start": "08:00",
+        "end": "12:00",
+        "title": "Free Time",
+        "type": "leisure",
+        "location": "Home",
+        "description": "Waktu bebas untuk gaming, project, belajar, quality time, atau aktivitas pribadi."
+      },
+      {
+        "id": "sunday-lunch",
+        "start": "12:00",
+        "end": "13:00",
+        "title": "Makan Siang + Istirahat",
+        "type": "meal",
+        "location": "Home",
+        "description": "Makan siang dan recovery."
+      },
+      {
+        "id": "sunday-free-time-afternoon",
+        "start": "13:00",
+        "end": "17:00",
+        "title": "Free Time / Recovery",
+        "type": "leisure",
+        "location": "Home",
+        "description": "Tidak ada kewajiban workout. Prioritaskan recovery dan aktivitas santai."
+      },
+      {
+        "id": "sunday-preparation-week",
+        "start": "17:00",
+        "end": "18:00",
+        "title": "Persiapan Minggu Depan",
+        "type": "preparation",
+        "location": "Home",
+        "description": "Siapkan pakaian, tas, kebutuhan PKL, dan hal-hal yang diperlukan untuk Senin."
+      },
+      {
+        "id": "sunday-dinner",
+        "start": "18:00",
+        "end": "19:00",
+        "title": "Makan + Recovery",
+        "type": "recovery",
+        "location": "Home",
+        "description": "Makan malam dan recovery."
+      },
+      {
+        "id": "sunday-evening",
+        "start": "19:00",
+        "end": "20:30",
+        "title": "Free Time",
+        "type": "leisure",
+        "location": "Home",
+        "description": "Aktivitas santai tanpa workout berat."
+      },
+      {
+        "id": "sunday-wind-down",
+        "start": "20:30",
+        "end": "21:00",
+        "title": "Persiapan Senin + Wind-down",
+        "type": "preparation",
+        "location": "Home",
+        "description": "Pastikan kebutuhan PKL Senin sudah siap dan mulai menurunkan aktivitas."
+      },
+      {
+        "id": "sunday-sleep",
+        "start": "21:00",
+        "end": "22:00",
+        "title": "Wind-down → Tidur",
+        "type": "sleep",
+        "location": "Home",
+        "description": "Target tidur 21:00–21:30; 22:00 batas maksimal."
+      }
+    ]
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "weekly": {
+    "thursday": [
+      {
+        "id": "thursday-wake-up",
+        "start": "05:00",
+        "end": "05:25",
+        "title": "Bangun + Subuh + Persiapan",
+        "type": "morning",
+        "location": "Home"
+      },
+      {
+        "id": "thursday-recovery",
+        "start": "05:25",
+        "end": "05:50",
+        "title": "Recovery + Mobility",
+        "type": "recovery",
+        "location": "Home",
+        "details": {
+          "activities": [
+            "Stretching",
+            "Mobility",
+            "Jalan ringan"
+          ],
+          "intensity": "Light",
+          "description": "Recovery aktif. Tidak ada workout berat."
+        }
+      },
+      {
+        "id": "thursday-shower",
+        "start": "05:50",
+        "end": "06:30",
+        "title": "Mandi + Persiapan",
+        "type": "personal",
+        "location": "Home"
+      },
+      {
+        "id": "thursday-breakfast",
+        "start": "06:30",
+        "end": "07:00",
+        "title": "Sarapan",
+        "type": "meal",
+        "location": "Home"
+      },
+      {
+        "id": "thursday-departure",
+        "start": "07:00",
+        "end": "08:00",
+        "title": "Persiapan + Berangkat PKL",
+        "type": "travel"
+      },
+      {
+        "id": "thursday-pkl",
+        "start": "08:00",
+        "end": "17:00",
+        "title": "PKL",
+        "type": "work",
+        "location": "PKL"
+      },
+      {
+        "id": "thursday-home-recovery",
+        "start": "17:00",
+        "end": "18:00",
+        "title": "Pulang + Recovery",
+        "type": "recovery"
+      },
+      {
+        "id": "thursday-evening",
+        "start": "18:00",
+        "end": "19:00",
+        "title": "Mandi + Ibadah + Makan",
+        "type": "recovery",
+        "location": "Home"
+      },
+      {
+        "id": "thursday-project",
+        "start": "19:00",
+        "end": "20:00",
+        "title": "Belajar / Project",
+        "type": "study",
+        "location": "Home"
+      },
+      {
+        "id": "thursday-free-time",
+        "start": "20:00",
+        "end": "20:30",
+        "title": "Free Time",
+        "type": "leisure"
+      },
+      {
+        "id": "thursday-preparation",
+        "start": "20:30",
+        "end": "21:00",
+        "title": "Persiapan Besok + Wind-down",
+        "type": "preparation",
+        "location": "Home"
+      },
+      {
+        "id": "thursday-sleep",
+        "start": "21:00",
+        "end": "22:00",
+        "title": "Tidur",
+        "type": "sleep",
+        "location": "Home",
+        "description": "Target tidur 21:00–21:30; 22:00 batas maksimal."
+      }
+    ]
+  }
+}

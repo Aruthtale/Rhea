@@ -1,0 +1,176 @@
+{
+  "weekly": {
+    "wednesday": [
+      {
+        "id": "wednesday-wake-up",
+        "start": "05:00",
+        "end": "05:25",
+        "title": "Bangun + Subuh + Persiapan",
+        "type": "morning",
+        "description": "Minum air, cuci muka, rapikan tempat tidur, Sholat Subuh, doa, lalu siapkan tubuh untuk workout.",
+        "location": "Home"
+      },
+      {
+        "id": "wednesday-legs-core",
+        "start": "05:25",
+        "end": "06:10",
+        "title": "Legs + Core",
+        "type": "exercise",
+        "location": "Home",
+        "details": {
+          "warmup": "Pemanasan",
+          "strength": [
+            {
+              "exercise": "Bodyweight squat",
+              "sets": 3,
+              "reps": "12–15",
+              "notes": "Turun terkontrol, lutut mengikuti arah jari kaki."
+            },
+            {
+              "exercise": "Reverse lunge",
+              "sets": 3,
+              "reps": "8–10 / kaki",
+              "notes": "Langkah ke belakang, jaga keseimbangan."
+            },
+            {
+              "exercise": "Bulgarian split squat",
+              "sets": 2,
+              "reps": "6–10 / kaki",
+              "notes": "Gunakan kursi yang kokoh. Jika terlalu sulit, ganti split squat biasa."
+            },
+            {
+              "exercise": "Calf raise",
+              "sets": 3,
+              "reps": "15–20",
+              "notes": "Naik perlahan, tahan sebentar di atas."
+            },
+            {
+              "exercise": "Dead bug",
+              "sets": 3,
+              "reps": "8–10 / sisi",
+              "notes": "Gerakan perlahan dan terkontrol."
+            },
+            {
+              "exercise": "Plank",
+              "sets": 2,
+              "duration": "30–45 detik",
+              "notes": "Jaga pinggang tidak turun atau terlalu naik."
+            }
+          ]
+        }
+      },
+      {
+        "id": "wednesday-cooldown",
+        "start": "06:10",
+        "end": "06:30",
+        "title": "Cooldown",
+        "type": "recovery",
+        "description": "Jalan ringan, atur napas, dan minum air.",
+        "location": "Home"
+      },
+      {
+        "id": "wednesday-shower",
+        "start": "06:30",
+        "end": "07:00",
+        "title": "Mandi + Persiapan",
+        "type": "personal",
+        "location": "Home"
+      },
+      {
+        "id": "wednesday-breakfast",
+        "start": "07:00",
+        "end": "07:25",
+        "title": "Sarapan",
+        "type": "meal",
+        "description": "Karbohidrat + protein + buah/sayur + sumber kalsium.",
+        "location": "Home"
+      },
+      {
+        "id": "wednesday-departure",
+        "start": "07:25",
+        "end": "08:00",
+        "title": "Persiapan & Berangkat PKL",
+        "type": "travel",
+        "description": "Siapkan air minum dan snack PKL."
+      },
+      {
+        "id": "wednesday-pkl-morning",
+        "start": "08:00",
+        "end": "12:00",
+        "title": "PKL",
+        "type": "work",
+        "location": "PKL",
+        "description": "Fokus kerja dan minum secara berkala."
+      },
+      {
+        "id": "wednesday-lunch-break",
+        "start": "12:00",
+        "end": "13:00",
+        "title": "Istirahat",
+        "type": "break",
+        "description": "Makan siang + ibadah + recovery.",
+        "location": "PKL"
+      },
+      {
+        "id": "wednesday-pkl-afternoon",
+        "start": "13:00",
+        "end": "17:00",
+        "title": "PKL",
+        "type": "work",
+        "location": "PKL",
+        "description": "Lanjut PKL. Gunakan snack bila lapar."
+      },
+      {
+        "id": "wednesday-home-recovery",
+        "start": "17:00",
+        "end": "18:00",
+        "title": "Pulang + Recovery",
+        "type": "recovery",
+        "description": "Perjalanan pulang. Tidak ada workout tambahan."
+      },
+      {
+        "id": "wednesday-evening",
+        "start": "18:00",
+        "end": "19:00",
+        "title": "Mandi + Ibadah + Makan",
+        "type": "recovery",
+        "description": "Recovery dan makan malam.",
+        "location": "Home"
+      },
+      {
+        "id": "wednesday-project",
+        "start": "19:00",
+        "end": "20:00",
+        "title": "Belajar / Project",
+        "type": "study",
+        "location": "Home",
+        "description": "Satu fokus utama. Stop jika terlalu lelah."
+      },
+      {
+        "id": "wednesday-free-time",
+        "start": "20:00",
+        "end": "20:30",
+        "title": "Free Time",
+        "type": "leisure",
+        "description": "Santai dan aktivitas ringan."
+      },
+      {
+        "id": "wednesday-preparation",
+        "start": "20:30",
+        "end": "21:00",
+        "title": "Persiapan Besok",
+        "type": "preparation",
+        "description": "Siapkan tas, pakaian, bekal, dan kebutuhan PKL."
+      },
+      {
+        "id": "wednesday-sleep",
+        "start": "21:00",
+        "end": "22:00",
+        "title": "Wind-down → Tidur",
+        "type": "sleep",
+        "description": "Target tidur 21:00–21:30; 22:00 batas maksimal.",
+        "location": "Home"
+      }
+    ]
+  }
+}

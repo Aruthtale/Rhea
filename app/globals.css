@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-canvas: #F7F8FA;
+    --bg-surface: #FFFFFF;
+    --bg-surface-soft: #F2F4F7;
+    --text-primary: #182033;
+    --text-secondary: #667085;
+    --text-muted: #98A2B3;
+    --border-color: #E7EAF0;
+
+    --primary: #8B7CF6;
+    --primary-soft: #EEEAFE;
+    --primary-hover: #7C6AE6;
+
+    --blue-accent: #5B8DEF;
+    --blue-soft: #EAF1FF;
+    --green-accent: #48B985;
+    --green-soft: #E9F8F1;
+    --orange-accent: #F5A14B;
+    --orange-soft: #FFF3E4;
+    --red-accent: #E96B73;
+    --red-soft: #FDECEE;
+  }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, .font-heading {
+    font-family: var(--font-space), var(--font-inter), system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  .font-mono-num {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Custom Soft Floating Paper Card Styles */
+.rhea-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E7EAF0;
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(30, 40, 60, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rhea-card-elevated {
+  background-color: #FFFFFF;
+  border: 1px solid #E7EAF0;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(30, 40, 60, 0.07);
+}
+
+/* Smooth Interactive Press Feedback */
+.press-fx {
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), opacity 150ms ease;
+}
+.press-fx:active {
+  transform: scale(0.97);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E2E8F0;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #CBD5E1;
+}
