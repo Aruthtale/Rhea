@@ -11,7 +11,7 @@ export interface ScheduleItem {
   start: string;
   end: string;
   title: string;
-  type: 'workout' | 'work' | 'focus' | 'rest' | 'personal' | 'routine';
+  type: string;
   location: string;
   description: string;
   details?: Record<string, any>;
