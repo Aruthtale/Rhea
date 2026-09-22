@@ -22,5 +22,8 @@ bun.lockb
 .DS_Store
 Thumbs.db
 
+# TypeScript build artifacts
+*.tsbuildinfo
+
 # Audio / Local raw data caches
 *.tmp
