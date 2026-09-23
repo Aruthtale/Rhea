@@ -44,6 +44,14 @@ export function getApiBase(): string {
   console.log('[apiBase] Platform detection:', { hasCapacitor, platform, isNative });
 
   if (isNative) {
+    // Prioritas 1: URL deployment publik (Vercel) — gak perlu laptop nyala.
+    // NEXT_PUBLIC_* aman di-expose karena cuma berisi URL, bukan secret.
+    const publicUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (publicUrl && /^https?:\/\//.test(publicUrl)) {
+      return publicUrl.replace(/\/+$/, '');
+    }
+
+    // Prioritas 2: LAN dev server (laptop di WiFi yang sama)
     return 'http://192.168.18.9:3000';
   }
 
