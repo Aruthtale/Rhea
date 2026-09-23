@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Calendar, CheckSquare, Clock, MapPin, Zap, Sparkles, Sun, Moon, Coffee, Battery, Play, Pause, RotateCcw, Plus, Send, Trash2, Cpu, Wifi } from 'lucide-react';
+import { Calendar, CheckSquare, Clock, MapPin, Zap, Sparkles, Sun, Moon, Coffee, Battery, Play, Pause, RotateCcw, Plus, Send, Trash2, Cpu, Wifi, Shield, Bell, BellOff, RefreshCw, ArrowRight, Laptop, Activity, Check } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { RheaOrb } from '@/components/canvas/RheaOrb';
 import { ScheduleEngine, ScheduleItem } from '@/engines/scheduleEngine';
 import { TaskRepository } from '@/engines/taskRepository';
 import { FocusSessionRepository, FocusSessionRow, totalFocusMinutesToday } from '@/engines/focusSessionRepository';
+import { DeviceEngine, DEVICE_MODES, DeviceMode } from '@/engines/deviceEngine';
 import type { TaskItem } from '@/types/tasks';
 import { eventBus } from '@/engines/eventBus';
 import { useRheaChat } from '@/hooks/useRheaChat';
@@ -430,7 +431,10 @@ function FocusView() {
   const handleComplete = () => {
     // Timer habis → selesaikan session & emit focus:completed
     setRunning(false);
-    FocusSessionRepository.complete(sessionRef.current, true);
+    const finished = FocusSessionRepository.complete(sessionRef.current, true);
+    if (finished) {
+      eventBus.emit('focus:completed', finished);
+    }
     sessionRef.current = null;
     setSessions(FocusSessionRepository.getToday());
   };
@@ -581,29 +585,335 @@ function AIView() {
 
 /* ---------- Device ---------- */
 function DeviceView() {
-  const cards = [
-    { icon: Battery, label: 'Battery', value: '78% — Laptop ready', color: 'text-[#48B985] bg-[#E9F8F1]' },
-    { icon: Wifi, label: 'Network', value: 'WiFi stabil — Rumah', color: 'text-[#5B8DEF] bg-[#EAF1FF]' },
-    { icon: Moon, label: 'Mode', value: 'Normal — siap fokus 19.00', color: 'text-[#8B7CF6] bg-[#EEEAFE]' },
-    { icon: Sun, label: 'Wind-down', value: 'Target tidur 22.00', color: 'text-[#F5A14B] bg-[#FFF3E4]' },
-  ];
+  const [deviceState, setDeviceState] = useState(() => DeviceEngine.getState());
+  const [batteryInfo, setBatteryInfo] = useState<{ level: number | null; charging: boolean | null }>({
+    level: null,
+    charging: null,
+  });
+  const [isOnline, setIsOnline] = useState(true);
+  const [historyList, setHistoryList] = useState(() => eventBus.getHistory().slice(-8).reverse());
+
+  const refreshState = () => {
+    setDeviceState(DeviceEngine.getState());
+    setHistoryList(eventBus.getHistory().slice(-8).reverse());
+  };
+
+  useEffect(() => {
+    refreshState();
+
+    const unsubMode = eventBus.on('device:modeChanged', () => refreshState());
+    const unsubFocusStart = eventBus.on('focus:started', () => refreshState());
+    const unsubFocusComp = eventBus.on('focus:completed', () => refreshState());
+    const unsubFocusCanc = eventBus.on('focus:cancelled', () => refreshState());
+
+    if (typeof window !== 'undefined') {
+      setIsOnline(navigator.onLine);
+      const onOnline = () => setIsOnline(true);
+      const onOffline = () => setIsOnline(false);
+      window.addEventListener('online', onOnline);
+      window.addEventListener('offline', onOffline);
+
+      if ('getBattery' in navigator) {
+        (navigator as any).getBattery().then((b: any) => {
+          const update = () => {
+            setBatteryInfo({
+              level: Math.round(b.level * 100),
+              charging: b.charging,
+            });
+          };
+          update();
+          b.addEventListener('levelchange', update);
+          b.addEventListener('chargingchange', update);
+        }).catch(() => {});
+      }
+
+      return () => {
+        unsubMode();
+        unsubFocusStart();
+        unsubFocusComp();
+        unsubFocusCanc();
+        window.removeEventListener('online', onOnline);
+        window.removeEventListener('offline', onOffline);
+      };
+    }
+
+    return () => {
+      unsubMode();
+      unsubFocusStart();
+      unsubFocusComp();
+      unsubFocusCanc();
+    };
+  }, []);
+
+  const currentMeta = DEVICE_MODES[deviceState.mode] || DEVICE_MODES.normal;
+  const modeList: DeviceMode[] = ['normal', 'work', 'focus', 'recovery', 'sleep'];
+
+  const modeIcons: Record<DeviceMode, React.ElementType> = {
+    normal: Sun,
+    work: Cpu,
+    focus: Zap,
+    recovery: Coffee,
+    sleep: Moon,
+  };
+
+  const handleSelectMode = (m: DeviceMode) => {
+    DeviceEngine.setMode(m, true);
+    refreshState();
+  };
+
+  const handleResetAuto = () => {
+    DeviceEngine.clearManualOverride();
+    refreshState();
+  };
+
+  const CurrentIcon = modeIcons[deviceState.mode] || Sun;
+
   return (
-    <div className="flex-1 p-6 grid grid-cols-12 gap-5">
-      {cards.map((c) => {
-        const Icon = c.icon;
-        return (
-          <div key={c.label} className="col-span-3 rhea-card p-5">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${c.color}`}>
-              <Icon className="w-4 h-4" />
+    <div className="flex-1 p-6 flex flex-col gap-6">
+      {/* 1. Hero Mode Banner */}
+      <div className="rhea-card p-6 border-l-4" style={{ borderLeftColor: currentMeta.accent }}>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${currentMeta.color}`}>
+              <CurrentIcon className="w-7 h-7" />
             </div>
-            <p className="text-[11px] uppercase tracking-wider font-semibold text-[#98A2B3]">{c.label}</p>
-            <p className="text-sm font-semibold text-[#182033] mt-1">{c.value}</p>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] uppercase tracking-wider font-bold text-[#98A2B3]">Mode Perangkat Saat Ini</span>
+                <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${currentMeta.badgeColor}`}>
+                  {currentMeta.label}
+                </span>
+                {deviceState.isManual ? (
+                  <span className="text-[10px] bg-[#FFF3E4] text-[#F5A14B] px-2 py-0.5 rounded-full font-medium">
+                    Manual Override
+                  </span>
+                ) : (
+                  <span className="text-[10px] bg-[#E9F8F1] text-[#48B985] px-2 py-0.5 rounded-full font-medium">
+                    Sinkronisasi Otomatis
+                  </span>
+                )}
+              </div>
+              <h2 className="font-heading text-2xl font-bold text-[#182033] mt-0.5">{currentMeta.tagline}</h2>
+              <p className="text-sm text-[#667085] mt-1">{currentMeta.description}</p>
+            </div>
           </div>
-        );
-      })}
-      <div className="col-span-12 rhea-card p-5">
-        <h3 className="font-heading text-sm font-bold text-[#182033] mb-2">State Machine</h3>
-        <p className="text-xs text-[#667085] font-mono-num">NORMAL → WORK → FOCUS → RECOVERY → SLEEP → NORMAL</p>
+
+          <div className="flex items-center gap-3">
+            {deviceState.isManual && (
+              <button
+                onClick={handleResetAuto}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#F2F4F7] hover:bg-[#E7EAF0] text-[#182033] transition-colors press-fx"
+                title="Kembalikan kontrol mode ke jadwal otomatis"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-[#8B7CF6]" />
+                <span>Reset ke Otomatis</span>
+              </button>
+            )}
+            <div className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold ${currentMeta.dndEnabled ? 'bg-[#EEEAFE] text-[#8B7CF6]' : 'bg-[#F2F4F7] text-[#667085]'}`}>
+              {currentMeta.dndEnabled ? <BellOff className="w-4 h-4 text-[#8B7CF6]" /> : <Bell className="w-4 h-4 text-[#98A2B3]" />}
+              <span>{currentMeta.dndEnabled ? 'DND Virtual Aktif' : 'Notifikasi Masuk'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Mode Quick Switcher */}
+      <div className="rhea-card p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-heading text-base font-bold text-[#182033]">Transisi Mode Manual</h3>
+            <p className="text-xs text-[#98A2B3] mt-0.5">Pilih mode untuk mengubah status perangkat dan memicu sinyal EventBus</p>
+          </div>
+          <span className="text-xs text-[#98A2B3] font-mono-num">Fase 2: State Machine</span>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {modeList.map((m) => {
+            const meta = DEVICE_MODES[m];
+            const Icon = modeIcons[m];
+            const isActive = deviceState.mode === m;
+            return (
+              <button
+                key={m}
+                onClick={() => handleSelectMode(m)}
+                className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between press-fx ${
+                  isActive
+                    ? 'border-[#8B7CF6] ring-2 ring-[#8B7CF6]/20 bg-white shadow-sm'
+                    : 'border-[#E7EAF0] bg-[#F7F8FA] hover:bg-white hover:border-[#8B7CF6]/40'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full mb-3">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${meta.color}`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  {isActive && (
+                    <span className="w-5 h-5 rounded-full bg-[#8B7CF6] text-white flex items-center justify-center text-[10px]">
+                      <Check className="w-3 h-3" />
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-[#182033]">{meta.label}</p>
+                  <p className="text-[11px] text-[#98A2B3] mt-0.5 line-clamp-1">{meta.tagline}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 3. System Diagnostics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Baterai */}
+        <div className="rhea-card p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[#E9F8F1] text-[#48B985]">
+              <Battery className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-wider font-semibold text-[#98A2B3]">Baterai & Daya</p>
+              <p className="text-sm font-bold text-[#182033]">
+                {batteryInfo.level !== null ? `${batteryInfo.level}%` : 'Laptop Siap'}
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-[#667085]">
+            {batteryInfo.charging === true
+              ? 'Sedang mengisi daya'
+              : batteryInfo.charging === false
+              ? 'Menggunakan daya baterai'
+              : 'Terhubung sumber daya'}
+          </p>
+        </div>
+
+        {/* Jaringan */}
+        <div className="rhea-card p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[#EAF1FF] text-[#5B8DEF]">
+              <Wifi className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-wider font-semibold text-[#98A2B3]">Jaringan</p>
+              <p className="text-sm font-bold text-[#182033]">
+                {isOnline ? 'Online' : 'Offline'}
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-[#667085]">
+            {isOnline ? 'Koneksi internet aktif' : 'Mode offline lokal'}
+          </p>
+        </div>
+
+        {/* DND Shield */}
+        <div className="rhea-card p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${currentMeta.dndEnabled ? 'bg-[#EEEAFE] text-[#8B7CF6]' : 'bg-[#F2F4F7] text-[#98A2B3]'}`}>
+              <Shield className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-wider font-semibold text-[#98A2B3]">Focus Shield</p>
+              <p className="text-sm font-bold text-[#182033]">
+                {currentMeta.dndEnabled ? 'DND Aktif' : 'Siaga'}
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-[#667085]">
+            {currentMeta.dndEnabled ? 'Semua notifikasi sosial dibisukan' : 'Notifikasi dapat masuk'}
+          </p>
+        </div>
+
+        {/* Riwayat Transisi */}
+        <div className="rhea-card p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[#FFF3E4] text-[#F5A14B]">
+              <Activity className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-wider font-semibold text-[#98A2B3]">Mode Terakhir</p>
+              <p className="text-sm font-bold text-[#182033]">
+                {deviceState.previousMode ? DEVICE_MODES[deviceState.previousMode]?.label || deviceState.previousMode : 'Awal'}
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-[#667085] truncate font-mono-num">
+            {new Date(deviceState.updatedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
+          </p>
+        </div>
+      </div>
+
+      {/* 4. State Machine Diagram */}
+      <div className="rhea-card p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-heading text-sm font-bold text-[#182033]">Diagram Siklus State Machine</h3>
+            <p className="text-xs text-[#98A2B3] mt-0.5">Alur status perangkat: transisi otomatis mengikuti jadwal dan sesi fokus</p>
+          </div>
+          <span className="text-[11px] font-mono-num text-[#8B7CF6] font-semibold bg-[#EEEAFE] px-2.5 py-1 rounded-full">
+            NORMAL ⇄ WORK ⇄ FOCUS ⇄ RECOVERY ⇄ SLEEP
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
+          {modeList.map((m) => {
+            const meta = DEVICE_MODES[m];
+            const Icon = modeIcons[m];
+            const isActive = deviceState.mode === m;
+            return (
+              <div
+                key={m}
+                className={`p-3.5 rounded-xl border flex items-center gap-3 transition-all ${
+                  isActive
+                    ? 'border-[#8B7CF6] ring-2 ring-[#8B7CF6]/20 bg-white shadow-sm'
+                    : 'border-[#E7EAF0] bg-[#F7F8FA] opacity-60'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${meta.color}`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-[#182033]">{meta.label}</span>
+                    {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[#8B7CF6] animate-pulse" />}
+                  </div>
+                  <span className="text-[10px] text-[#98A2B3] truncate block">{meta.tagline}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 5. Event Bus Audit Trail */}
+      <div className="rhea-card p-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-[#8B7CF6]" />
+            <h3 className="font-heading text-sm font-bold text-[#182033]">Log Sinyal Event Bus Terakhir</h3>
+          </div>
+          <span className="text-xs text-[#98A2B3] font-mono-num">{historyList.length} sinyal terekam</span>
+        </div>
+        <div className="space-y-2">
+          {historyList.map((ev, i) => (
+            <div
+              key={`${ev.event}-${ev.at}-${i}`}
+              className="flex items-center justify-between p-2.5 rounded-lg bg-[#F7F8FA] border border-[#E7EAF0] text-xs font-mono-num"
+            >
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#8B7CF6]" />
+                <span className="font-semibold text-[#182033]">{ev.event}</span>
+                <span className="text-[#98A2B3] truncate max-w-md">
+                  {JSON.stringify(ev.payload)}
+                </span>
+              </div>
+              <span className="text-[11px] text-[#98A2B3]">
+                {new Date(ev.at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+            </div>
+          ))}
+          {historyList.length === 0 && (
+            <p className="text-xs text-[#98A2B3] text-center py-4">Belum ada sinyal event yang tercatat dalam buffer.</p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -613,6 +923,10 @@ function DeviceView() {
 export default function Home() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const now = useNow();
+
+  useEffect(() => {
+    DeviceEngine.init();
+  }, []);
 
   const currentHour = now.getHours();
   const timeString = `${String(currentHour).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
