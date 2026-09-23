@@ -1,11 +1,6 @@
-export interface TaskItem {
-  id: string;
-  title: string;
-  completed: boolean;
-  priority?: 'high' | 'normal' | 'low';
-  tag?: string;
-  createdAt: string;
-}
+import type { TaskItem } from '@/types/tasks';
+
+export type { TaskItem };
 
 const STORAGE_KEYS = {
   TASKS: 'rhea_tasks_v1',

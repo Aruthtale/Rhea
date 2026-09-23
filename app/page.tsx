@@ -5,7 +5,10 @@ import { Calendar, CheckSquare, Clock, MapPin, Zap, Sparkles, Sun, Moon, Coffee,
 import { Sidebar } from '@/components/layout/Sidebar';
 import { RheaOrb } from '@/components/canvas/RheaOrb';
 import { ScheduleEngine, ScheduleItem } from '@/engines/scheduleEngine';
-import { StorageEngine, TaskItem } from '@/engines/storageEngine';
+import { TaskRepository } from '@/engines/taskRepository';
+import { FocusSessionRepository, FocusSessionRow, totalFocusMinutesToday } from '@/engines/focusSessionRepository';
+import type { TaskItem } from '@/types/tasks';
+import { eventBus } from '@/engines/eventBus';
 import { useRheaChat } from '@/hooks/useRheaChat';
 
 const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -122,8 +125,8 @@ function DashboardView({ now }: { now: Date }) {
   const [focusMin, setFocusMin] = useState(45);
 
   useEffect(() => {
-    setTasks(StorageEngine.getTasks());
-    setFocusMin(StorageEngine.getFocusMinutesToday());
+    setTasks(TaskRepository.getAll());
+    setFocusMin(totalFocusMinutesToday());
   }, []);
 
   const done = tasks.filter((t) => t.completed).length;
@@ -132,9 +135,10 @@ function DashboardView({ now }: { now: Date }) {
   const focusStatus = isFocusTime ? 'focus' : (currentHour >= 8 && currentHour < 17 ? 'idle' : 'rest');
 
   const toggleTask = (id: string) => {
-    const next = tasks.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t));
-    setTasks(next);
-    StorageEngine.saveTasks(next);
+    const updated = TaskRepository.toggle(id);
+    if (!updated) return;
+    setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    eventBus.emit('task:toggled', { task: updated });
   };
 
   return (
@@ -317,19 +321,29 @@ function TasksView() {
   const [draft, setDraft] = useState('');
 
   useEffect(() => {
-    setTasks(StorageEngine.getTasks());
+    setTasks(TaskRepository.getAll());
   }, []);
-
-  const persist = (next: TaskItem[]) => {
-    setTasks(next);
-    StorageEngine.saveTasks(next);
-  };
 
   const add = () => {
     const title = draft.trim();
     if (!title) return;
-    persist([...tasks, { id: `t-${Date.now()}`, title, completed: false, priority: 'normal', createdAt: new Date().toISOString() }]);
+    const created = TaskRepository.create({ title });
+    setTasks((prev) => [...prev, created]);
+    eventBus.emit('task:created', { task: created });
     setDraft('');
+  };
+
+  const toggle = (id: string) => {
+    const updated = TaskRepository.toggle(id);
+    if (!updated) return;
+    setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    eventBus.emit('task:toggled', { task: updated });
+  };
+
+  const remove = (id: string) => {
+    TaskRepository.delete(id);
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+    eventBus.emit('task:deleted', { taskId: id });
   };
 
   const done = tasks.filter((t) => t.completed).length;
@@ -362,7 +376,7 @@ function TasksView() {
           {tasks.map((t) => (
             <div key={t.id} className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-[#F2F4F7] transition-colors group">
               <button
-                onClick={() => persist(tasks.map((x) => (x.id === t.id ? { ...x, completed: !x.completed } : x)))}
+                onClick={() => toggle(t.id)}
                 className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ${t.completed ? 'bg-[#8B7CF6] border-[#8B7CF6]' : 'border-[#E7EAF0] bg-white'}`}
                 aria-label="Toggle tugas"
               >
@@ -371,7 +385,7 @@ function TasksView() {
               <span className={`text-sm flex-1 ${t.completed ? 'line-through text-[#98A2B3]' : 'text-[#182033]'}`}>{t.title}</span>
               {t.tag && <span className="text-[10px] bg-[#EEEAFE] text-[#8B7CF6] px-2 py-0.5 rounded-full font-medium">{t.tag}</span>}
               <button
-                onClick={() => persist(tasks.filter((x) => x.id !== t.id))}
+                onClick={() => remove(t.id)}
                 className="opacity-0 group-hover:opacity-100 text-[#98A2B3] hover:text-red-500 p-1 transition-all"
                 aria-label="Hapus tugas"
               >
@@ -393,6 +407,46 @@ function FocusView() {
   const [secondsLeft, setSecondsLeft] = useState(25 * 60);
   const [running, setRunning] = useState(false);
   const [taskName, setTaskName] = useState('RHEA Development');
+  const [sessions, setSessions] = useState<FocusSessionRow[]>([]);
+  const sessionRef = useRef<string | null>(null);
+
+  // Tampilkan log sesi fokus hari ini (todo Fase 1: log sesi penuh)
+  useEffect(() => {
+    setSessions(FocusSessionRepository.getToday());
+  }, []);
+
+  const handleStart = () => {
+    // Pencet "Mulai" → buka session & emit focus:started
+    const session = FocusSessionRepository.start(taskName, minutes);
+    sessionRef.current = session.id;
+    eventBus.emit('focus:started', {
+      taskName,
+      plannedMinutes: minutes,
+      startedAt: session.startedAt,
+    });
+    setRunning(true);
+  };
+
+  const handleComplete = () => {
+    // Timer habis → selesaikan session & emit focus:completed
+    setRunning(false);
+    FocusSessionRepository.complete(sessionRef.current, true);
+    sessionRef.current = null;
+    setSessions(FocusSessionRepository.getToday());
+  };
+
+  const handleCancel = () => {
+    // "Reset" saat masih jalan → emit focus:cancelled
+    if (sessionRef.current && running) {
+      eventBus.emit('focus:cancelled', {
+        taskName,
+        elapsedMinutes: Math.max(1, Math.round((minutes * 60 - secondsLeft) / 60)),
+      });
+      FocusSessionRepository.complete(sessionRef.current, false);
+      sessionRef.current = null;
+    }
+    setSessions(FocusSessionRepository.getToday());
+  };
 
   useEffect(() => {
     if (!running) return;
@@ -400,9 +454,7 @@ function FocusView() {
       setSecondsLeft((s) => {
         if (s <= 1) {
           clearInterval(id);
-          setRunning(false);
-          const done = Math.round((minutes * 60 - 0) / 60);
-          StorageEngine.addFocusMinutes(done);
+          handleComplete();
           return 0;
         }
         return s - 1;
@@ -412,6 +464,7 @@ function FocusView() {
   }, [running, minutes]);
 
   const pick = (m: number) => {
+    handleCancel();
     setMinutes(m);
     setSecondsLeft(m * 60);
     setRunning(false);
@@ -438,15 +491,23 @@ function FocusView() {
           ))}
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={() => setRunning((r) => !r)}
-            disabled={secondsLeft === 0}
-            className="bg-[#8B7CF6] hover:bg-[#7C6AE6] disabled:opacity-40 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm font-semibold transition-colors"
-          >
-            {running ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            {running ? 'Jeda' : secondsLeft === 0 ? 'Selesai' : 'Mulai'}
-          </button>
-          <button onClick={() => pick(minutes)} className="bg-[#F2F4F7] hover:bg-[#E7EAF0] text-[#667085] px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm font-medium transition-colors">
+          {!running ? (
+            <button
+              onClick={handleStart}
+              disabled={secondsLeft === 0}
+              className="bg-[#8B7CF6] hover:bg-[#7C6AE6] disabled:opacity-40 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm font-semibold transition-colors"
+            >
+              <Play className="w-4 h-4" /> Mulai
+            </button>
+          ) : (
+            <button
+              onClick={() => { handleCancel(); setRunning(false); setSecondsLeft(minutes * 60); }}
+              className="bg-[#E9F8F1] hover:bg-[#D4F2E7] text-[#48B985] px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm font-semibold transition-colors"
+            >
+              <Pause className="w-4 h-4" /> Stop
+            </button>
+          )}
+          <button onClick={() => { handleCancel(); setRunning(false); setSecondsLeft(minutes * 60); }} className="bg-[#F2F4F7] hover:bg-[#E7EAF0] text-[#667085] px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm font-medium transition-colors">
             <RotateCcw className="w-4 h-4" /> Reset
           </button>
         </div>
@@ -457,12 +518,39 @@ function FocusView() {
           <input
             value={taskName}
             onChange={(e) => setTaskName(e.target.value)}
-            className="w-full bg-[#F2F4F7] border border-[#E7EAF0] rounded-xl px-4 py-2.5 text-sm text-[#182033] focus:outline-none focus:border-[#8B7CF6]"
+            disabled={running}
+            className="w-full bg-[#F2F4F7] border border-[#E7EAF0] rounded-xl px-4 py-2.5 text-sm text-[#182033] focus:outline-none focus:border-[#8B7CF6] disabled:opacity-50"
           />
           <div className="mt-4 space-y-2 text-xs text-[#667085]">
             <p>• Notifikasi sosial dibisukan saat timer jalan</p>
-            <p>• Selesai otomatis tercatat ke Focus Hari Ini</p>
+            <p>• Sesi tercatat lengkap: mulai, selesai, durasi, task</p>
             <p>• Istirahat 5 menit tiap 25 menit yaa Zen</p>
+          </div>
+        </div>
+
+        {/* Log sesi fokus hari ini */}
+        <div className="rhea-card p-5">
+          <h3 className="font-heading text-sm font-bold text-[#182033] mb-3 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-[#8B7CF6]" />
+            Sesi Hari Ini
+          </h3>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {sessions.length === 0 ? (
+              <p className="text-xs text-[#98A2B3]">Belum ada sesi hari ini. Mulai timer yaa Zen!</p>
+            ) : (
+              [...sessions].reverse().map((s) => (
+                <div key={s.id} className="flex items-center gap-2.5 text-xs p-2 rounded-lg bg-[#F7F8FA]">
+                  <span className={`w-1.5 h-1.5 rounded-full ${s.completed ? 'bg-[#48B985]' : 'bg-[#F5A14B]'}`} />
+                  <span className="font-mono-num font-semibold text-[#667085] shrink-0">
+                    {new Date(s.startedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  <span className="text-[#182033] flex-1 truncate">{s.taskName}</span>
+                  <span className={`font-mono-num font-semibold shrink-0 ${s.completed ? 'text-[#48B985]' : 'text-[#F5A14B]'}`}>
+                    {s.durationMinutes || Math.max(1, Math.round((minutes * 60 - secondsLeft) / 60))}m
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
