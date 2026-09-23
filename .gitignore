@@ -27,3 +27,13 @@ Thumbs.db
 
 # Audio / Local raw data caches
 *.tmp
+
+# Android / Capacitor
+android/app/build/
+android/.gradle/
+android/build/
+android/captures/
+android/local.properties
+android/app/src/main/assets/public/
+android/app/release/
+

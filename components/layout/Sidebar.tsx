@@ -27,7 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
   ];
 
   return (
-    <aside className="w-64 border-r border-[#E7EAF0] bg-white flex flex-col justify-between p-5 min-h-screen shrink-0">
+    <aside className="hidden md:flex w-64 border-r border-[#E7EAF0] bg-white flex-col justify-between p-5 min-h-screen shrink-0">
       <div>
         {/* Brand Logo & Name */}
         <div className="flex items-center gap-3 px-2 py-3 mb-6">

@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Calendar, CheckSquare, Clock, MapPin, Zap, Sparkles, Sun, Moon, Coffee, Battery, Play, Pause, RotateCcw, Plus, Send, Trash2, Cpu, Wifi, Shield, Bell, BellOff, RefreshCw, ArrowRight, Laptop, Activity, Check } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { BottomNav } from '@/components/layout/BottomNav';
 import { RheaOrb } from '@/components/canvas/RheaOrb';
 import { ScheduleEngine, ScheduleItem } from '@/engines/scheduleEngine';
 import { TaskRepository } from '@/engines/taskRepository';
@@ -11,6 +12,8 @@ import { DeviceEngine, DEVICE_MODES, DeviceMode } from '@/engines/deviceEngine';
 import type { TaskItem } from '@/types/tasks';
 import { eventBus } from '@/engines/eventBus';
 import { useRheaChat } from '@/hooks/useRheaChat';
+import { getApiBase, setApiBase } from '@/engines/apiBase';
+import { NotificationEngine } from '@/engines/notificationEngine';
 
 const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -57,7 +60,7 @@ function ChatPanel({ tall = false }: { tall?: boolean }) {
   }, [messages, isLoading]);
 
   return (
-    <div className={`rhea-card p-5 flex flex-col ${tall ? 'h-[70vh]' : 'h-[60%]'}`}>
+    <div className={`rhea-card p-4 md:p-5 flex flex-col ${tall ? 'h-full min-h-[58vh]' : 'h-[58vh]'}`}>
       <div className="flex items-center gap-2 mb-3">
         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#8B7CF6] to-[#5B8DEF] flex items-center justify-center">
           <Sparkles className="w-4 h-4 text-white" />
@@ -143,12 +146,14 @@ function DashboardView({ now }: { now: Date }) {
   };
 
   return (
-    <div className="flex-1 p-6 grid grid-cols-12 gap-5">
-      <div className="col-span-4 flex flex-col gap-5">
-        <div className="rhea-card p-6 flex flex-col items-center justify-center">
-          <RheaOrb status={focusStatus} size={260} />
+    <div className="flex-1 p-4 md:p-6 grid grid-cols-12 gap-4 md:gap-5">
+      <div className="col-span-12 md:col-span-4 flex flex-col gap-4 md:gap-5 order-2 md:order-1">
+        <div className="rhea-card p-5 md:p-6 flex flex-col items-center justify-center">
+          <div className="scale-90 md:scale-100">
+            <RheaOrb status={focusStatus} size={260} />
+          </div>
           <p className="font-heading text-lg font-semibold text-[#182033] mt-4">Rhea Companion</p>
-          <p className="text-xs text-[#98A2B3] mt-1">
+          <p className="text-xs text-[#98A2B3] mt-1 text-center">
             {focusStatus === 'focus' ? 'Focus Mode aktif' : focusStatus === 'rest' ? 'Waktu recharge' : 'Zen siap berkolaborasi'}
           </p>
         </div>
@@ -175,7 +180,7 @@ function DashboardView({ now }: { now: Date }) {
         </div>
       </div>
 
-      <div className="col-span-5 flex flex-col gap-5">
+      <div className="col-span-12 md:col-span-5 flex flex-col gap-4 md:gap-5 order-3 md:order-2">
         <div className="rhea-card p-5 flex-1">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -230,7 +235,7 @@ function DashboardView({ now }: { now: Date }) {
         </div>
       </div>
 
-      <div className="col-span-3 flex flex-col gap-5">
+      <div className="col-span-12 md:col-span-3 flex flex-col gap-4 md:gap-5 order-1 md:order-3">
         <ChatPanel />
         <div className="rhea-card p-5 flex-1">
           <h3 className="font-heading text-sm font-bold text-[#182033] mb-3 flex items-center gap-2">
@@ -269,7 +274,7 @@ function ScheduleView({ now }: { now: Date }) {
   const items = useMemo(() => ScheduleEngine.getDaySchedule(dayKey), [dayKey]);
 
   return (
-    <div className="flex-1 p-6 flex flex-col gap-5">
+    <div className="flex-1 p-4 md:p-6 flex flex-col gap-4 md:gap-5">
       <div className="rhea-card p-5">
         <div className="flex items-center gap-2 mb-4">
           <Calendar className="w-5 h-5 text-[#8B7CF6]" />
@@ -350,7 +355,7 @@ function TasksView() {
   const done = tasks.filter((t) => t.completed).length;
 
   return (
-    <div className="flex-1 p-6 flex flex-col gap-5">
+    <div className="flex-1 p-4 md:p-6 flex flex-col gap-4 md:gap-5">
       <div className="rhea-card p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -479,10 +484,12 @@ function FocusView() {
   const progress = 1 - secondsLeft / (minutes * 60);
 
   return (
-    <div className="flex-1 p-6 grid grid-cols-12 gap-5">
-      <div className="col-span-7 rhea-card p-8 flex flex-col items-center justify-center gap-6">
-        <RheaOrb status={running ? 'focus' : 'idle'} size={220} />
-        <p className="font-mono-num text-6xl font-bold text-[#182033] tracking-tight">{mm}:{ss}</p>
+    <div className="flex-1 p-4 md:p-6 grid grid-cols-12 gap-4 md:gap-5">
+      <div className="col-span-12 md:col-span-7 rhea-card p-6 md:p-8 flex flex-col items-center justify-center gap-5 md:gap-6">
+        <div className="scale-90 md:scale-100">
+          <RheaOrb status={running ? 'focus' : 'idle'} size={220} />
+        </div>
+        <p className="font-mono-num text-5xl md:text-6xl font-bold text-[#182033] tracking-tight">{mm}:{ss}</p>
         <p className="text-sm text-[#667085]">{taskName}</p>
         <div className="w-full max-w-sm h-2 rounded-full bg-[#F2F4F7] overflow-hidden">
           <div className="h-full bg-gradient-to-r from-[#8B7CF6] to-[#5B8DEF] rounded-full transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
@@ -516,7 +523,7 @@ function FocusView() {
           </button>
         </div>
       </div>
-      <div className="col-span-5 flex flex-col gap-5">
+      <div className="col-span-12 md:col-span-5 flex flex-col gap-4 md:gap-5">
         <div className="rhea-card p-5">
           <h3 className="font-heading text-sm font-bold text-[#182033] mb-3">Task Fokus</h3>
           <input
@@ -563,21 +570,104 @@ function FocusView() {
 }
 
 /* ---------- AI full ---------- */
+function ServerSettingsCard() {
+  const [url, setUrl] = useState('');
+  const [status, setStatus] = useState<'idle' | 'testing' | 'ok' | 'fail'>('idle');
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setUrl(getApiBase());
+  }, []);
+
+  const save = () => {
+    setApiBase(url.trim());
+    setSaved(true);
+    setStatus('idle');
+    setTimeout(() => setSaved(false), 1500);
+  };
+
+  const test = async () => {
+    setStatus('testing');
+    try {
+      const res = await fetch(`${url.trim().replace(/\/+$/, '')}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'ping' }),
+      });
+      setStatus(res.ok ? 'ok' : 'fail');
+    } catch {
+      setStatus('fail');
+    }
+    setTimeout(() => setStatus('idle'), 3000);
+  };
+
+  const statusText = {
+    idle: saved ? 'Tersimpan ✓' : '',
+    testing: 'Mengecek...',
+    ok: 'Terhubung ✓',
+    fail: 'Tidak terjangkau ✗',
+  }[status];
+
+  const statusColor =
+    status === 'ok' || saved ? 'text-[#48B985]'
+      : status === 'fail' ? 'text-[#F04438]'
+      : status === 'testing' ? 'text-[#8B7CF6]'
+      : 'text-[#98A2B3]';
+
+  return (
+    <div className="rhea-card p-4">
+      <h3 className="font-heading text-sm font-bold text-[#182033] mb-3 flex items-center gap-2">
+        <Wifi className="w-4 h-4 text-[#8B7CF6]" /> Server Rhea
+      </h3>
+      <p className="text-xs text-[#667085] mb-3 leading-relaxed">
+        Di Android, Rhea butuh alamat server laptop (misalnya <span className="font-mono text-[#8B7CF6]">http://192.168.18.9:3000</span>). Pastikan laptop menyala dan HP &amp; laptop satu Wi-Fi.
+      </p>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="http://192.168.18.9:3000"
+          className="flex-1 bg-[#F2F4F7] border border-[#E7EAF0] rounded-xl px-3 py-2 text-xs text-[#182033] placeholder-[#98A2B3] focus:outline-none focus:border-[#8B7CF6] focus:ring-1 focus:ring-[#8B7CF6]/30 transition-colors font-mono"
+        />
+        <button
+          onClick={test}
+          disabled={!url.trim() || status === 'testing'}
+          className="bg-white border border-[#D0D5DD] hover:bg-[#F9FAFB] disabled:opacity-40 text-[#344054] px-3 rounded-xl text-xs font-semibold transition-colors press-fx whitespace-nowrap"
+        >
+          Tes
+        </button>
+        <button
+          onClick={save}
+          disabled={!url.trim()}
+          className="bg-[#8B7CF6] hover:bg-[#7C6AE6] disabled:opacity-40 text-white px-3.5 rounded-xl text-xs font-semibold transition-colors press-fx whitespace-nowrap"
+        >
+          Simpan
+        </button>
+      </div>
+      <p className={`text-[11px] mt-2 font-semibold ${statusColor}`}>{statusText}</p>
+    </div>
+  );
+}
+
 function AIView() {
   return (
-    <div className="flex-1 p-6 grid grid-cols-12 gap-5">
-      <div className="col-span-8"><ChatPanel tall /></div>
-      <div className="col-span-4 rhea-card p-5">
-        <h3 className="font-heading text-sm font-bold text-[#182033] mb-3 flex items-center gap-2">
-          <Cpu className="w-4 h-4 text-[#8B7CF6]" /> Cara Rhea mikir
-        </h3>
-        <div className="space-y-2.5 text-xs text-[#667085] leading-relaxed">
-          <p>1. Baca jadwal aktif + tugas fokus kamu</p>
-          <p>2. Ambil persona Renatha (Tier 1) — bukan seluruh chat history</p>
-          <p>3. Coba jawab lewat Hermes lokal (9Router) dulu</p>
-          <p>4. Kalau laptop offline &gt; 2 detik, otomatis pindah ke Gemini Cloud</p>
-          <p>5. Kalau dua-duanya mati, jawab heuristic offline yang hangat</p>
+    <div className="flex-1 p-4 md:p-6 grid grid-cols-12 gap-4 md:gap-5">
+      <div className="col-span-12 md:col-span-8"><ChatPanel tall /></div>
+      <div className="col-span-12 md:col-span-4 flex flex-col gap-4">
+        <div className="rhea-card p-5">
+          <h3 className="font-heading text-sm font-bold text-[#182033] mb-3 flex items-center gap-2">
+            <Cpu className="w-4 h-4 text-[#8B7CF6]" /> Cara Rhea mikir
+          </h3>
+          <div className="space-y-2.5 text-xs text-[#667085] leading-relaxed">
+            <p>1. Baca jadwal aktif + tugas fokus kamu</p>
+            <p>2. Ambil persona Renatha (Tier 1) — bukan seluruh chat history</p>
+            <p>3. Coba jawab lewat Hermes lokal (9Router) dulu</p>
+            <p>4. Kalau laptop offline &gt; 2 detik, otomatis pindah ke Gemini Cloud</p>
+            <p>5. Kalau dua-duanya mati, jawab heuristic offline yang hangat</p>
+          </div>
         </div>
+        <ServerSettingsCard />
       </div>
     </div>
   );
@@ -669,9 +759,9 @@ function DeviceView() {
   const CurrentIcon = modeIcons[deviceState.mode] || Sun;
 
   return (
-    <div className="flex-1 p-6 flex flex-col gap-6">
+    <div className="flex-1 p-4 md:p-6 flex flex-col gap-4 md:gap-6">
       {/* 1. Hero Mode Banner */}
-      <div className="rhea-card p-6 border-l-4" style={{ borderLeftColor: currentMeta.accent }}>
+      <div className="rhea-card p-5 md:p-6 border-l-4" style={{ borderLeftColor: currentMeta.accent }}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${currentMeta.color}`}>
@@ -718,7 +808,7 @@ function DeviceView() {
       </div>
 
       {/* 2. Mode Quick Switcher */}
-      <div className="rhea-card p-6">
+      <div className="rhea-card p-5 md:p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="font-heading text-base font-bold text-[#182033]">Transisi Mode Manual</h3>
@@ -842,18 +932,18 @@ function DeviceView() {
       </div>
 
       {/* 4. State Machine Diagram */}
-      <div className="rhea-card p-6">
+      <div className="rhea-card p-5 md:p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="font-heading text-sm font-bold text-[#182033]">Diagram Siklus State Machine</h3>
             <p className="text-xs text-[#98A2B3] mt-0.5">Alur status perangkat: transisi otomatis mengikuti jadwal dan sesi fokus</p>
           </div>
-          <span className="text-[11px] font-mono-num text-[#8B7CF6] font-semibold bg-[#EEEAFE] px-2.5 py-1 rounded-full">
+          <span className="hidden md:inline-block text-[11px] font-mono-num text-[#8B7CF6] font-semibold bg-[#EEEAFE] px-2.5 py-1 rounded-full">
             NORMAL ⇄ WORK ⇄ FOCUS ⇄ RECOVERY ⇄ SLEEP
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-center">
           {modeList.map((m) => {
             const meta = DEVICE_MODES[m];
             const Icon = modeIcons[m];
@@ -884,7 +974,7 @@ function DeviceView() {
       </div>
 
       {/* 5. Event Bus Audit Trail */}
-      <div className="rhea-card p-6">
+      <div className="rhea-card p-5 md:p-6">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-[#8B7CF6]" />
@@ -923,10 +1013,42 @@ function DeviceView() {
 export default function Home() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const now = useNow();
+  const [currentScheduleItem, setCurrentScheduleItem] = useState<ScheduleItem | null>(null);
 
+  // Init notification engine dan schedule daily reminders
   useEffect(() => {
     DeviceEngine.init();
+    
+    // Init notifications dan schedule untuk hari ini
+    NotificationEngine.init().then(hasPermission => {
+      if (hasPermission) {
+        const todaySchedule = ScheduleEngine.getDaySchedule();
+        NotificationEngine.scheduleDailyReminders(todaySchedule);
+      }
+    });
   }, []);
+
+  // Check schedule transition setiap menit
+  useEffect(() => {
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const todaySchedule = ScheduleEngine.getDaySchedule();
+    
+    // Cari jadwal yang sedang berlangsung
+    const current = todaySchedule.find(item => {
+      const [sh, sm] = item.start.split(':').map(Number);
+      const [eh, em] = item.end.split(':').map(Number);
+      const s = sh * 60 + sm;
+      const e = eh * 60 + em;
+      return nowMin >= s && nowMin < e;
+    });
+
+    // Deteksi transisi jadwal
+    if (current && current.id !== currentScheduleItem?.id) {
+      NotificationEngine.checkScheduleTransition(current, currentScheduleItem);
+    }
+
+    setCurrentScheduleItem(current || null);
+  }, [now]); // Trigger setiap useNow() update (30 detik)
 
   const currentHour = now.getHours();
   const timeString = `${String(currentHour).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -942,14 +1064,15 @@ export default function Home() {
   return (
     <div className="flex h-screen overflow-hidden bg-[#F7F8FA]">
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <main className="flex-1 flex flex-col overflow-y-auto">
-        <header className="sticky top-0 z-20 bg-[#F7F8FA] border-b border-[#E7EAF0] px-6 py-4 flex items-center justify-between">
-          <div>
-            <h2 className="font-heading text-2xl font-bold text-[#182033]">{getGreeting()}</h2>
-            <p className="text-sm text-[#98A2B3] font-mono-num">{dayNames[now.getDay()]}, {dateString}</p>
+      <main className="flex-1 flex flex-col overflow-y-auto min-w-0">
+        <header className="sticky top-0 z-20 bg-[#F7F8FA]/95 backdrop-blur-md border-b border-[#E7EAF0] px-4 md:px-6 py-3.5 md:py-4 flex items-center justify-between pt-[calc(env(safe-area-inset-top,0px)+14px)] md:pt-4">
+          <div className="min-w-0">
+            <h2 className="font-heading text-xl md:text-2xl font-bold text-[#182033] truncate">{getGreeting()}</h2>
+            <p className="text-xs md:text-sm text-[#98A2B3] font-mono-num">{dayNames[now.getDay()]}, {dateString}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3 shrink-0">
             <div className="flex items-center gap-2 glass-pill px-3 py-1.5 rounded-full">
               <Clock className="w-3.5 h-3.5 text-[#8B7CF6]" />
               <span className="font-mono-num text-sm font-semibold text-[#182033]">{timeString}</span>
@@ -966,6 +1089,8 @@ export default function Home() {
         {activeTab === 'focus' && <FocusView />}
         {activeTab === 'ai' && <AIView />}
         {activeTab === 'device' && <DeviceView />}
+
+        <div className="h-24 md:hidden" />
       </main>
     </div>
   );

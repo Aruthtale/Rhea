@@ -83,3 +83,16 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #CBD5E1;
 }
+
+/* ---------- Mobile / Capacitor WebView ---------- */
+html, body {
+  height: 100%;
+}
+
+/* hide scrollbars on touch devices, keep native momentum scroll */
+@media (pointer: coarse) {
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+}
