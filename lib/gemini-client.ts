@@ -1,37 +1,32 @@
 /**
  * Client-side Gemini AI utility
- * Langsung call Google Gemini API dari browser/Android (seperti Arutha)
- * Fallback ke Next.js API route jika diperlukan
+ *
+ * Catatan keamanan: API key TIDAK lagi dibake ke client bundle.
+ * Sebelumnya NEXT_PUBLIC_GEMINI_API_KEY ter-inline di JS yang bisa dibaca
+ * siapa pun yang membuka APK. Sekarang semua request melalui /api/chat
+ * yang menjaga key di server.
  */
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// Model fallback cascade — hanya model yang benar-benar ada.
+// 3.5 dan 3.6 sudah pensiun/tdk pernah release publik, jadi jangan dipakai.
+const MODELS = [
+  'gemini-3.7-flash',
+  'gemini-3.8-flash'
+];
 
-const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
-
-let client: GoogleGenerativeAI | null = null;
-
-function getClient(): GoogleGenerativeAI {
-  if (!client) {
-    if (!apiKey) {
-      throw new Error('NEXT_PUBLIC_GEMINI_API_KEY tidak ditemukan di environment variables');
-    }
-    client = new GoogleGenerativeAI(apiKey);
-  }
-  return client;
-}
+// Direct mode (client → Gemini langsung) sudah DIMATIKAN.
+// Alasan: NEXT_PUBLIC_GEMINI_API_KEY ter-inline ke JS bundle dan bisa dibaca
+// langsung dari dalam APK. Sekarang semua chat lewat /api/chat (server route)
+// yang menjaga GEMINI_API_KEY tetap rahasia.
+//
+// Untuk menyalakan kembali direct mode, isi nilai ini dari env khusus device
+// terdaftar — tapi sadar bahwa key-nya akan terlihat di bundle.
+const DIRECT_API_KEY = '';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
 }
-
-// Model fallback cascade (3.5 → 3.6 → 3.7 → 3.8)
-const MODELS = [
-  'gemini-3.5-flash',
-  'gemini-3.6-flash',
-  'gemini-3.7-flash',
-  'gemini-3.8-flash'
-];
 
 /**
  * Mode langsung ke Gemini API (untuk production/mobile)
@@ -41,7 +36,12 @@ export async function generateDirectly(
   prompt: string,
   history: ChatMessage[] = []
 ): Promise<string> {
-  const ai = getClient();
+  if (!DIRECT_API_KEY) {
+    throw new Error('Direct mode dinonaktifkan — API key tidak boleh dibake ke client. Gunakan generateViaAPI().');
+  }
+
+  const { GoogleGenerativeAI } = await import('@google/generative-ai');
+  const ai = new GoogleGenerativeAI(DIRECT_API_KEY);
 
   // System prompt: definisi kepribadian Rhea yang santai & natural
   const systemPrompt = `Kamu adalah Rhea, AI companion yang ceria, supportif, dan ngobrol pakai bahasa santai banget kayak temen deket.
@@ -176,7 +176,7 @@ export async function generateWithFallback(
   history: ChatMessage[] = [],
   preferDirect: boolean = true
 ): Promise<string> {
-  if (preferDirect && apiKey) {
+  if (preferDirect && DIRECT_API_KEY) {
     try {
       return await generateDirectly(prompt, history);
     } catch (error) {
@@ -192,5 +192,5 @@ export async function generateWithFallback(
  * Check apakah direct mode tersedia
  */
 export function isDirectModeAvailable(): boolean {
-  return !!apiKey;
+  return !!DIRECT_API_KEY;
 }

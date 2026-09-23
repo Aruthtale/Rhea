@@ -18,16 +18,24 @@ export class NotificationEngine {
 
     try {
       // Check current permission
-      const permStatus = await LocalNotifications.checkPermissions();
-      
-      if (permStatus.display === 'granted') {
-        this.hasPermission = true;
-      } else {
-        // Request permission
+      let permStatus = await LocalNotifications.checkPermissions();
+
+      // Android sering kali merespons 'prompt' sebelum activity siap, dan
+      // 'denied' kalau user belum pernah ditanya. Kita tetap minta sekali lagi
+      // selama belum 'granted' supaya dialog benar-benar muncul.
+      while (permStatus.display !== 'granted') {
+        console.log('[NotificationEngine] Current status:', permStatus.display, '→ requesting...');
         const request = await LocalNotifications.requestPermissions();
-        this.hasPermission = request.display === 'granted';
+        permStatus = request;
+
+        // Kalau user benar-benar nolak, jangan loop selamanya
+        if (permStatus.display === 'denied') {
+          console.warn('[NotificationEngine] Permission denied by user');
+          break;
+        }
       }
 
+      this.hasPermission = permStatus.display === 'granted';
       this.isInitialized = true;
       console.log('[NotificationEngine] Initialized, permission:', this.hasPermission);
       return this.hasPermission;
@@ -74,7 +82,7 @@ export class NotificationEngine {
             body: `Dalam 5 menit di ${item.location}`,
             schedule: { at: notifTime },
             sound: 'default',
-            smallIcon: 'ic_stat_icon_config_sample',
+            smallIcon: 'ic_stat_rhea',
             iconColor: '#8B7CF6',
           }
         ]
@@ -106,7 +114,7 @@ export class NotificationEngine {
             body,
             schedule: { at: new Date(Date.now() + 100) }, // 100ms dari sekarang
             sound: 'default',
-            smallIcon: 'ic_stat_icon_config_sample',
+            smallIcon: 'ic_stat_rhea',
             iconColor: '#8B7CF6',
           }
         ]
