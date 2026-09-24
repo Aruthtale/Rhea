@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "cap:sync": "next build && cap sync android",
-    "cap:build": "next build && cap sync android && cd android && ./gradlew assembleDebug",
-    "cap:run": "next build && cap sync android && cd android && ./gradlew assembleDebug && cd .. && cap run android"
+    "build:mobile": "CAPACITOR_BUILD=true next build",
+    "cap:sync": "CAPACITOR_BUILD=true next build && cap sync android",
+    "cap:build": "CAPACITOR_BUILD=true next build && cap sync android && cd android && ./gradlew assembleDebug",
+    "cap:run": "CAPACITOR_BUILD=true next build && cap sync android && cd android && ./gradlew assembleDebug && cd .. && cap run android"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
